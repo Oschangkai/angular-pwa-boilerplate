@@ -1,13 +1,38 @@
 <div style="text-align:center">
   <h1 class="title">
-    Welcome to the Angular PWA demo!
+    Angular PWA with IndexedDB on MS Teams demo!
   </h1>
   <div class="img-wrap">
     <img id="angular_logo" alt="Angular Logo" src="./assets/logos/angular_logo.png">
     <img id="pwa_logo" alt="PWA Logo" src="./assets/logos/pwa_logo.png">
   </div>
+  <!-- Teams identity test -->
+  <div *ngIf="identity">
+    <p>Infos:</p>
+    <p>teamName: {{identity.teamName}}</p>
+    <p>channelName: {{identity.channelName}}</p>
+    <p>upn: {{identity.upn}}</p>
+  </div>
+  <br />
+  <!-- Photo upload test -->
+  <div>
+    <input type="file" accept="image/*" capture="camera" />
+  </div>
+  <br />
+  <!-- IndexedDB test -->
+  <div>
+    <button (click)="insertJoke()">Insert joke</button>
+    <button (click)="showAllJokes()">All saved jokes</button>
+    <button (click)="showJoke(1)">Yesterday jokes</button>
+    <button (click)="showJoke(0)">Today jokes</button>
+    <ng-container *ngIf="filteredJokes == undefined">
+      <p *ngFor="let jokes of savedJokes">{{jokes.quote}}<br />{{jokes.create_time | date:'yyyy/MM/dd'}}</p>
+    </ng-container>
+    <p *ngFor="let jokes of filteredJokes">{{jokes.quote}}<br />{{jokes.create_time | date:'yyyy/MM/dd'}}</p>
+  </div>
 </div>
 
+<!-- Async data test -->
 <main>
   <div class="content">
     <div class="data-container" *ngIf="jokes$ | async as jokeData">
@@ -15,27 +40,6 @@
       <p>
         {{jokeData.joke}}
       </p>
-    </div>
-
-    <div class="data-container" *ngIf="sharesData$ | async as sharesData">
-      <h2 class="card-title">Shares info </h2>
-      <div class="shares-metadata">
-        <strong>Symbol: {{sharesData.name}}</strong>
-        <span>Last trade time: {{sharesData.lastTradeTime | date:'dd.MM.yyyy HH:mm'}}</span>
-      </div>
-      <div class="shares-details">
-        <div class="price">{{sharesData.price}} {{sharesData.currency}}</div>
-        <div class="values">
-          <div class="values-wrap">
-            <img src="./assets/icons/arrow_up.png" alt="arrow_up" title="Highest value">
-            <span class="high_value">{{sharesData.dayHigh}}</span>
-          </div>
-          <div class="values-wrap">
-            <img src="./assets/icons/arrow_down.png" alt="arrow_down" title="Lowest value">
-            <span>{{sharesData.dayLow}}</span>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </main>
