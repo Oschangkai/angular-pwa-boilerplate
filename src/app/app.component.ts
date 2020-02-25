@@ -14,6 +14,7 @@ import { tap } from 'rxjs/operators';
 })
 export class AppComponent implements OnInit {
 
+  isIdbSupported: boolean;
   jokes$: Observable<Joke>;
   jokes: string;
   sharesData$: Observable<Share>;
@@ -46,24 +47,26 @@ export class AppComponent implements OnInit {
 
     if (!('indexedDB' in window)) {
       alert("IndexedDB not supported!!");
+      this.isIdbSupported = false;
       return;
     }
-    this.db = await openDB<MyTestDatabase>("MyTestDatabase", 2, this.idbOptions);
+    this.isIdbSupported = true;
+    this.db = await openDB<MyTestDatabase>("MyTestDatabase", 1, this.idbOptions);
   }
 
   idbOptions: OpenDBCallbacks<MyTestDatabase> = {
 
     upgrade(db, oldVer, newVer, tx) {
       console.log(`old version is ${oldVer}, current version is ${newVer}`);
-      const store = db.createObjectStore("jokes", { autoIncrement: true });
-      store.createIndex("idx_time", "create_time");
+      db.createObjectStore("jokes", { autoIncrement: true })
+        .createIndex("idx_time", "create_time");
+      db.createObjectStore("photos", { autoIncrement: true });
     }
   }
 
   async insertJoke() {
 
-    if(this.db === undefined) {
-      alert("IndexedDB not initialized!!");
+    if(!this.isIdbReady()) {
       return;
     }
     const tx = this.db.transaction("jokes", "readwrite");
@@ -74,12 +77,21 @@ export class AppComponent implements OnInit {
   }
 
   async showAllJokes() {
+
+    if(!this.isIdbReady()) {
+      return;
+    }
+    
     const tx = this.db.transaction("jokes", "readonly");
     this.savedJokes = await tx.store.getAll();
     this.filteredJokes = undefined;
   }
 
   async showJoke(days: number) {
+
+    if(!this.isIdbReady()) {
+      return;
+    }
     await this.showAllJokes();
     this.filteredJokes = this.savedJokes.filter(el => {
       let date = ( d => new Date(d.setDate(d.getDate()-days)) )(new Date);
@@ -87,6 +99,17 @@ export class AppComponent implements OnInit {
     });
   }
 
+  isIdbReady(): boolean {
+    if(this.db !== undefined) {
+      return true;
+    }
+    if(!this.isIdbSupported) {
+      alert("IndexedDB not supported!!");
+      return false;
+    }
+    alert("IndexedDB not initialized!!");
+    return false;
+  }
 }
 interface MyTestDatabase extends DBSchema {
   "jokes": {
@@ -97,4 +120,11 @@ interface MyTestDatabase extends DBSchema {
     };
     indexes: { "idx_time": Date };
   };
+  "photos": {
+    key: number;
+    value: {
+
+    };
+    indexes: {  };
+  }
 }
