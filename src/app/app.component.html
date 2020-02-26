@@ -14,9 +14,24 @@
     <p>upn: {{identity.upn}}</p>
   </div>
   <br />
+  <button (click)="savedJokes = savedPhotos = filteredJokes = undefined">Clear all on screen</button>
+  <button (click)="deleteDb()">Delete DB</button>
   <!-- Photo upload test -->
   <div>
-    <input type="file" accept="image/*" capture="camera" />
+    <input #photo style="display: none" (change)="getPhoto($event)" type="file" accept="image/*" capture="camera" />
+    <button (click)="photo.click()">Capture</button>
+    <button (click)="insertPhoto()">Save Photo</button>
+    <button (click)="showPhotos()">Show saved photos</button>
+    <br />
+    <img #imgPreview src="" alt="photo preview" width="50%" hidden />
+    <div *ngIf="savedPhotos">
+      <p>Saved Photo List</p>
+      <ng-container *ngFor="let photo of savedPhotos">
+        <img [src]="photo.img" width="25%" /><br />
+        {{photo.create_time | date:'yyyy/MM/dd'}}
+        <br/>
+      </ng-container>
+    </div>
   </div>
   <br />
   <!-- IndexedDB test -->

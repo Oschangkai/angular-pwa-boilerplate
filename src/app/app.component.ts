@@ -21,6 +21,8 @@ export class AppComponent implements OnInit {
   db: IDBPDatabase<MyTestDatabase>;
   savedJokes: MyTestDatabase["jokes"]["value"][];
   filteredJokes: MyTestDatabase["jokes"]["value"][];
+  savedPhotos: MyTestDatabase["photos"]["value"][];
+  @ViewChild('imgPreview', {static: true}) preview: ElementRef;
   
   constructor(
     private dataService: DataService,
@@ -54,6 +56,12 @@ export class AppComponent implements OnInit {
     }
     this.isIdbSupported = true;
     this.db = await openDB<MyTestDatabase>("MyTestDatabase", 1, this.idbOptions);
+  }
+
+  deleteDb() {
+    this.db.clear("jokes");
+    this.db.clear("photos");
+    window.location.reload();
   }
 
   idbOptions: OpenDBCallbacks<MyTestDatabase> = {
@@ -101,6 +109,39 @@ export class AppComponent implements OnInit {
     });
   }
 
+  async getPhoto(event) {
+    let p = await this.toBase64(event.target.files[0]);
+    this.preview.nativeElement.src = p;
+    this.preview.nativeElement.hidden = false;
+  }
+
+  insertPhoto(): void {
+
+    if(!this.isIdbReady()) {
+      return;
+    }
+
+    if(!this.preview.nativeElement.src.startsWith("data:image/")) {
+      alert("Please take photo before saving it.");
+      return;
+    }
+    const tx = this.db.transaction("photos", "readwrite");
+    tx.store.add({
+      img: this.preview.nativeElement.src,
+      create_time: new Date()
+    }).then(() => alert("Saved!"));
+  }
+
+  async showPhotos() {
+
+    if(!this.isIdbReady()) {
+      return;
+    }
+
+    const tx = this.db.transaction("photos", "readonly");
+    this.savedPhotos = await tx.store.getAll();
+  }
+
   isIdbReady(): boolean {
     if(this.db !== undefined) {
       return true;
@@ -112,6 +153,13 @@ export class AppComponent implements OnInit {
     alert("IndexedDB not initialized!!");
     return false;
   }
+
+  toBase64 = (file: File) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
 }
 interface MyTestDatabase extends DBSchema {
   "jokes": {
@@ -125,7 +173,8 @@ interface MyTestDatabase extends DBSchema {
   "photos": {
     key: number;
     value: {
-
+      img: string;
+      create_time: Date;
     };
     indexes: {  };
   }
