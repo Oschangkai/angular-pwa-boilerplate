@@ -14,6 +14,7 @@ import { tap } from 'rxjs/operators';
 export class AppComponent implements OnInit {
 
   isIdbSupported: boolean;
+  isCameraSupported: boolean;
   jokes$: Observable<Joke>;
   jokes: string;
   sharesData$: Observable<Share>;
@@ -22,6 +23,12 @@ export class AppComponent implements OnInit {
   savedJokes: MyTestDatabase["jokes"]["value"][];
   filteredJokes: MyTestDatabase["jokes"]["value"][];
   savedPhotos: MyTestDatabase["photos"]["value"][];
+  videoSize: {height: number, width: number} = {
+    height: 0,
+    width: 0
+  }
+  @ViewChild('canvas', { static: true }) canvas: ElementRef;
+  @ViewChild('livecam', { static: true }) liveCam: ElementRef;
   @ViewChild('imgPreview', {static: true}) preview: ElementRef;
   
   constructor(
@@ -40,8 +47,8 @@ export class AppComponent implements OnInit {
 
     this.initTeamsApp();
     this.initDb();
+    this.initCam();
   }
-
   initTeamsApp() {
     msTeams.initialize();
     // https://docs.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/create-tab-pages/configuration-page
@@ -95,6 +102,15 @@ export class AppComponent implements OnInit {
         .createIndex("idx_time", "create_time");
       db.createObjectStore("photos", { autoIncrement: true });
     }
+  }
+
+  mediaConstrains: MediaStreamConstraints = {
+    video: {
+      facingMode: "environment",
+      width: { ideal: 1280 },
+      height: { ideal: 720 }
+    },
+    audio: false
   }
 
   async insertJoke() {
@@ -163,6 +179,33 @@ export class AppComponent implements OnInit {
 
     const tx = this.db.transaction("photos", "readonly");
     this.savedPhotos = await tx.store.getAll();
+  }
+
+  initCam() {
+    // https://www.dev6.com/angular/capturing-camera-images-with-angular/
+    if (!!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) { 
+      navigator.mediaDevices.getUserMedia(this.mediaConstrains)
+        .then(this.attachVideo.bind(this))
+        .catch(err => console.log(err));
+      this.isCameraSupported = true;
+    } else {
+      alert('Camera API not available.');
+      this.isCameraSupported = false;
+    }
+  }
+
+  attachVideo(stream) {
+    this.renderer.setProperty(this.liveCam.nativeElement, 'srcObject', stream);
+    this.renderer.listen(this.liveCam.nativeElement, 'play', (event) => {
+      this.videoSize.height = this.liveCam.nativeElement.videoHeight;
+      this.videoSize.width = this.liveCam.nativeElement.videoWidth;
+    });
+  }
+
+  capture() {
+    this.renderer.setProperty(this.canvas.nativeElement, 'width', this.videoSize.width);
+    this.renderer.setProperty(this.canvas.nativeElement, 'height', this.videoSize.height);
+    this.canvas.nativeElement.getContext('2d').drawImage(this.liveCam.nativeElement, 0, 0);
   }
 
   isIdbReady(): boolean {

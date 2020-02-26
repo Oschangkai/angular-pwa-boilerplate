@@ -45,7 +45,16 @@
     </ng-container>
     <p *ngFor="let jokes of filteredJokes">{{jokes.quote}}<br />{{jokes.create_time | date:'yyyy/MM/dd'}}</p>
   </div>
+  <br />
+  <!-- Canvas capture test -->
+  <div>
+    <video #livecam class="vid" autoplay></video>
+    <button (click)="capture()">Capture Image</button>
+    <canvas #canvas id="preview"></canvas>
+  </div>
 </div>
+  
+
 
 <!-- Async data test -->
 <main>
