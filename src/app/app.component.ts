@@ -59,8 +59,8 @@ export class AppComponent implements OnInit {
   }
 
   deleteDb() {
-    this.db.clear("jokes");
-    this.db.clear("photos");
+    // this.db.clear("jokes");
+    // this.db.clear("photos");
     deleteDB("MyTestDatabase");
     window.location.reload();
   }
