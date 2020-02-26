@@ -4,7 +4,7 @@ import { Component, OnInit, ElementRef, ViewChild, Renderer2 } from '@angular/co
 import { DataService } from './services/data.service';
 import { Observable } from 'rxjs';
 import * as msTeams from "@microsoft/teams-js";
-import { IDBPDatabase, OpenDBCallbacks, DBSchema, openDB } from 'idb';
+import { IDBPDatabase, OpenDBCallbacks, DBSchema, openDB, deleteDB } from 'idb';
 import { tap } from 'rxjs/operators';
 @Component({
   selector: 'app-root',
@@ -61,6 +61,7 @@ export class AppComponent implements OnInit {
   deleteDb() {
     this.db.clear("jokes");
     this.db.clear("photos");
+    deleteDB("MyTestDatabase");
     window.location.reload();
   }
 
