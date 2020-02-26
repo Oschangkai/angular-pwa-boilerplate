@@ -1,12 +1,11 @@
 import { Share } from './models/share';
 import { Joke } from './models/joke';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, Renderer2 } from '@angular/core';
 import { DataService } from './services/data.service';
 import { Observable } from 'rxjs';
 import * as msTeams from "@microsoft/teams-js";
 import { IDBPDatabase, OpenDBCallbacks, DBSchema, openDB } from 'idb';
 import { tap } from 'rxjs/operators';
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -15,6 +14,7 @@ import { tap } from 'rxjs/operators';
 export class AppComponent implements OnInit {
 
   isIdbSupported: boolean;
+  isCameraSupported: boolean;
   jokes$: Observable<Joke>;
   jokes: string;
   sharesData$: Observable<Share>;
@@ -22,8 +22,17 @@ export class AppComponent implements OnInit {
   db: IDBPDatabase<MyTestDatabase>;
   savedJokes: MyTestDatabase["jokes"]["value"][];
   filteredJokes: MyTestDatabase["jokes"]["value"][];
+  videoSize: {height: number, width: number} = {
+    height: 0,
+    width: 0
+  }
+  @ViewChild('canvas', { static: true }) canvas: ElementRef;
+  @ViewChild('livecam', { static: true }) liveCam: ElementRef;
   
-  constructor(private dataService: DataService) {}
+  constructor(
+    private dataService: DataService,
+    private renderer: Renderer2
+  ) {}
 
   ngOnInit() {
 
@@ -41,6 +50,7 @@ export class AppComponent implements OnInit {
     });
 
     this.initDb();
+    this.initCam();
   }
 
   async initDb() {
@@ -54,6 +64,27 @@ export class AppComponent implements OnInit {
     this.db = await openDB<MyTestDatabase>("MyTestDatabase", 1, this.idbOptions);
   }
 
+  initCam() {
+  // https://www.dev6.com/angular/capturing-camera-images-with-angular/
+    if (!!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) { 
+      navigator.mediaDevices.getUserMedia(this.mediaConstrains)
+        .then(this.attachVideo.bind(this))
+        .catch(err => console.log(err));
+      this.isCameraSupported = true;
+    } else {
+        alert('Camera API not available.');
+        this.isCameraSupported = false;
+    }
+  }
+
+  attachVideo(stream) {
+    this.renderer.setProperty(this.liveCam.nativeElement, 'srcObject', stream);
+    this.renderer.listen(this.liveCam.nativeElement, 'play', (event) => {
+      this.videoSize.height = this.liveCam.nativeElement.videoHeight;
+      this.videoSize.width = this.liveCam.nativeElement.videoWidth;
+    });
+  }
+
   idbOptions: OpenDBCallbacks<MyTestDatabase> = {
 
     upgrade(db, oldVer, newVer, tx) {
@@ -61,6 +92,14 @@ export class AppComponent implements OnInit {
       db.createObjectStore("jokes", { autoIncrement: true })
         .createIndex("idx_time", "create_time");
       db.createObjectStore("photos", { autoIncrement: true });
+    }
+  }
+
+  mediaConstrains: MediaStreamConstraints = {
+    video: {
+      facingMode: "environment",
+      width: { ideal: 1280 },
+      height: { ideal: 720 }
     }
   }
 
@@ -109,6 +148,12 @@ export class AppComponent implements OnInit {
     }
     alert("IndexedDB not initialized!!");
     return false;
+  }
+
+  capture() {
+    this.renderer.setProperty(this.canvas.nativeElement, 'width', this.videoSize.width);
+    this.renderer.setProperty(this.canvas.nativeElement, 'height', this.videoSize.height);
+    this.canvas.nativeElement.getContext('2d').drawImage(this.liveCam.nativeElement, 0, 0);
   }
 }
 interface MyTestDatabase extends DBSchema {

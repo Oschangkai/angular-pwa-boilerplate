@@ -16,7 +16,10 @@
   <br />
   <!-- Photo upload test -->
   <div>
-    <input type="file" accept="image/*" capture="camera" />
+    <!-- <input type="file" accept="image/*" capture="camera" /> -->
+    <video #livecam class="vid" autoplay></video>
+    <button (click)="capture()">Capture Image</button>
+    <canvas #canvas id="preview"></canvas>
   </div>
   <br />
   <!-- IndexedDB test -->
