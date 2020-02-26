@@ -38,13 +38,35 @@ export class AppComponent implements OnInit {
     );
     this.sharesData$ = this.dataService.getShares();
 
+    this.initTeamsApp();
+    this.initDb();
+  }
+
+  initTeamsApp() {
     msTeams.initialize();
+    // https://docs.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/create-tab-pages/configuration-page
+    
     msTeams.getContext((Context: msTeams.Context) => {
       alert("getcontext call back function");
       this.identity = Context;
+      if(Context.channelName) {
+        this.setupTeamsChannelTab();
+      }
     });
+  }
 
-    this.initDb();
+  setupTeamsChannelTab() {
+    alert("Setup channel tab");
+    msTeams.settings.setValidityState(true);
+    msTeams.settings.registerOnSaveHandler((saveEvent) => {
+      msTeams.settings.setSettings({
+          websiteUrl: "https://10802019diag647.z31.web.core.windows.net/",
+          contentUrl: "https://10802019diag647.z31.web.core.windows.net/",
+          entityId: "Tab:001",
+          suggestedDisplayName: "Oscar PWA Demo"
+      });
+      saveEvent.notifySuccess();
+    });
   }
 
   async initDb() {
