@@ -64,7 +64,9 @@ export class AppComponent implements OnInit {
 
   setupTeamsChannelTab() {
     alert("Setup channel tab");
+    // Set save button available
     msTeams.settings.setValidityState(true);
+    // Invoked when user click 'Save' button on Teams
     msTeams.settings.registerOnSaveHandler((saveEvent) => {
       msTeams.settings.setSettings({
           websiteUrl: "https://10802019diag647.z31.web.core.windows.net/",
