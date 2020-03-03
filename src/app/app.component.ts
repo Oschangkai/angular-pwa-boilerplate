@@ -28,6 +28,7 @@ export class AppComponent implements OnInit {
     height: 0,
     width: 0
   }
+  location: {lat: number, lng: number};
   @ViewChild('canvas', { static: true }) canvas: ElementRef;
   @ViewChild('livecam', { static: true }) liveCam: ElementRef;
   @ViewChild('imgPreview', {static: true}) preview: ElementRef;
@@ -89,7 +90,7 @@ export class AppComponent implements OnInit {
       return;
     }
     this.isGeoLocationSupported = true;
-    this.getPosition().then( pos => console.log(`Positon: ${pos.lng} ${pos.lat}`) );
+    this.getPosition().then( pos => this.location = {lat: pos.lat, lng: pos.lng} );
   }
     
   getPosition(): Promise<any> {
@@ -221,7 +222,13 @@ export class AppComponent implements OnInit {
     if (!!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) { 
       navigator.mediaDevices.getUserMedia(this.mediaConstrains)
         .then(this.attachVideo.bind(this))
-        .catch(err => console.log(err));
+        .catch(err => {
+          console.log(err);
+          if(err.name == "NotAllowedError") {
+            alert("Please allow camera.");
+            this.isCameraSupported = false;
+          }
+        });
       this.isCameraSupported = true;
     } else {
       alert('Camera API not available.');
@@ -261,19 +268,6 @@ export class AppComponent implements OnInit {
     reader.onload = () => resolve(reader.result);
     reader.onerror = error => reject(error);
   });
-
-  permissionPrompt() {
-    navigator.permissions.query({name: "geolocation"}).then(result => {
-      if (result.state != 'granted') {
-        alert("Failed");
-      }
-    });
-    navigator.permissions.query({name: "camera"}).then(result => {
-      if (result.state != 'granted') {
-        alert("Failed");
-      }
-    });
-  }
 }
 interface MyTestDatabase extends DBSchema {
   "jokes": {

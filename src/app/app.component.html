@@ -6,6 +6,11 @@
     <img id="angular_logo" alt="Angular Logo" src="./assets/logos/angular_logo.png">
     <img id="pwa_logo" alt="PWA Logo" src="./assets/logos/pwa_logo.png">
   </div>
+  <!-- Location test -->
+  <div>
+    {{location | json}}
+    <a [href]="'https://www.latlong.net/c/?lat=' + location.lat + '&long=' + location.lng">Go to map</a>
+  </div>
   <!-- Teams identity test -->
   <div *ngIf="identity">
     <p>Infos:</p>
@@ -14,8 +19,12 @@
     <p>upn: {{identity.upn}}</p>
   </div>
   <br />
-  <button (click)="savedJokes = savedPhotos = filteredJokes = undefined">Clear all on screen</button>
-  <button (click)="deleteDb()">Delete DB</button>
+  <!-- Dev buttons -->
+  <div>
+    <button (click)="savedJokes = savedPhotos = filteredJokes = undefined">Clear all on screen</button>
+    <button (click)="deleteDb()">Delete DB</button>
+  </div>
+
   <!-- Photo upload test -->
   <div>
     <input #photo style="display: none" (change)="getPhoto($event)" type="file" accept="image/*" capture="camera" />
