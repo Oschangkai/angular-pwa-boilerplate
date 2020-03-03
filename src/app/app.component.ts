@@ -90,26 +90,7 @@ export class AppComponent implements OnInit {
       return;
     }
     this.isGeoLocationSupported = true;
-    this.getPosition().then( pos => this.location = {lat: pos.lat, lng: pos.lng} );
-  }
-    
-  getPosition(): Promise<any> {
-
-    if(!this.isGeoLocationSupported) {
-      alert("Geolocation not supported!!");
-      return;
-    }
-
-    return new Promise((resolve, reject) => {
-
-      navigator.geolocation.getCurrentPosition(
-        resp => {
-          resolve({lng: resp.coords.longitude, lat: resp.coords.latitude});
-        },
-        err => {
-          reject(err);
-        });
-    });
+    navigator.geolocation.getCurrentPosition(pos => this.location = {lat: pos.coords.latitude, lng: pos.coords.longitude});
   }
 
   async initDb() {
