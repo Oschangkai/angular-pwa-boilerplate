@@ -8,8 +8,11 @@
   </div>
   <!-- Location test -->
   <div>
+    <button (click)="initGeoLocation()">Get Geolocation</button>
     {{location | json}}
-    <a [href]="'https://www.latlong.net/c/?lat=' + location.lat + '&long=' + location.lng">Go to map</a>
+    <ng-container *ngIf="location">
+      <a [href]="'https://www.latlong.net/c/?lat=' + location.lat + '&long=' + location.lng">Go to map</a>
+    </ng-container>
   </div>
   <!-- Teams identity test -->
   <div *ngIf="identity">
