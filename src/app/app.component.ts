@@ -15,6 +15,7 @@ export class AppComponent implements OnInit {
 
   isIdbSupported: boolean;
   isCameraSupported: boolean;
+  isGeoLocationSupported: boolean;
   jokes$: Observable<Joke>;
   jokes: string;
   sharesData$: Observable<Share>;
@@ -48,6 +49,7 @@ export class AppComponent implements OnInit {
     this.initTeamsApp();
     this.initDb();
     this.initCam();
+    this.initGeoLocation();
   }
   initTeamsApp() {
     msTeams.initialize();
@@ -63,6 +65,7 @@ export class AppComponent implements OnInit {
   }
 
   setupTeamsChannelTab() {
+    // https://docs.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/create-tab-pages/configuration-page
     alert("Setup channel tab");
     // Set save button available
     msTeams.settings.setValidityState(true);
@@ -74,7 +77,37 @@ export class AppComponent implements OnInit {
           entityId: "Tab:001",
           suggestedDisplayName: "Oscar PWA Demo"
       });
+      // Indicate that the content URL has successfully resolved.
       saveEvent.notifySuccess();
+    });
+  }
+
+  initGeoLocation() {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported!!");
+      this.isGeoLocationSupported = false;
+      return;
+    }
+    this.isGeoLocationSupported = true;
+    this.getPosition().then( pos => console.log(`Positon: ${pos.lng} ${pos.lat}`) );
+  }
+    
+  getPosition(): Promise<any> {
+
+    if(!this.isGeoLocationSupported) {
+      alert("Geolocation not supported!!");
+      return;
+    }
+
+    return new Promise((resolve, reject) => {
+
+      navigator.geolocation.getCurrentPosition(
+        resp => {
+          resolve({lng: resp.coords.longitude, lat: resp.coords.latitude});
+        },
+        err => {
+          reject(err);
+        });
     });
   }
 
@@ -228,6 +261,19 @@ export class AppComponent implements OnInit {
     reader.onload = () => resolve(reader.result);
     reader.onerror = error => reject(error);
   });
+
+  permissionPrompt() {
+    navigator.permissions.query({name: "geolocation"}).then(result => {
+      if (result.state != 'granted') {
+        alert("Failed");
+      }
+    });
+    navigator.permissions.query({name: "camera"}).then(result => {
+      if (result.state != 'granted') {
+        alert("Failed");
+      }
+    });
+  }
 }
 interface MyTestDatabase extends DBSchema {
   "jokes": {
